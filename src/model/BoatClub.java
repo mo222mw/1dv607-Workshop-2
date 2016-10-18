@@ -30,18 +30,12 @@ public class BoatClub
     public Member addMember(String name, String persNr)
     {
 
-        System.out.println("Name: " + name);
         //Validate input:
         if(!name.matches(NAME_PATTERN))
             return null;  //Invalid name.
 
-        System.out.println("valid name");
-
         if(!persNr.matches(PERSONAL_NR_PATTERN))
             return null;  //Invalid personal number.
-
-        System.out.println("valid pers nr");
-
 
         //Format personal number:
         persNr = persNr.replace("-", "");
@@ -53,7 +47,70 @@ public class BoatClub
         //Add member to members:
         members.add(member);
 
+        //Update registry
+        saveRegistry();
+
         return member;
+    }
+
+    /**
+     * Edits members name if input is valid.
+     *
+     * @param member member to edit
+     * @param name name
+     * @return boolean - true if name is valid
+     */
+    public boolean editMemberName(Member member, String name)
+    {
+        //Validate input:
+        if (!name.matches(NAME_PATTERN))
+            return false;
+
+        //Change name:
+        member.setName(name);
+
+        //Update registry:
+        saveRegistry();
+        return true;
+    }
+
+    /**
+     * Edits personal number if input is valid.
+     *
+     * @param member member to edit
+     * @param persNr personal number
+     * @return - boolean - true if personal number is valid
+     */
+    public boolean editMemberPersNr(Member member, String persNr)
+    {
+        //Validate input:
+        if (!persNr.matches(PERSONAL_NR_PATTERN))
+            return false;
+
+        //Change personal number:
+        member.setPersNr(persNr);
+
+        //Update registry
+        saveRegistry();
+        return true;
+    }
+
+    public void removeMember(Member member)
+    {
+        members.remove(member);
+        saveRegistry();
+    }
+
+    public void removeBoat(Member member, Boat boat)
+    {
+        member.removeBoat(boat);
+        saveRegistry();
+    }
+
+    public void removeBoat(Member member, int boatId)
+    {
+        member.removeBoat(boatId);
+        saveRegistry();
     }
 
     /**
