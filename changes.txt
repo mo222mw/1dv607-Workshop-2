@@ -1,0 +1,4 @@
+Impleted a few missed methods (review by tl222kz_jl223qh)
+---
+delete method for boat and member 
+edit method for member.
