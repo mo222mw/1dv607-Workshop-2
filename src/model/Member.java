@@ -25,16 +25,28 @@ public class Member
         return boat;
     }
 
+    public void removeBoat(Boat boat)
+    {
+        boats.remove(boat);
+    }
+
+    public void removeBoat(int boatId)
+    {
+        boats.remove(boatId);
+    }
+
     //Get methods:
     public int getId() {return id;}
     public String getName()
     {
         return name;
     }
+    public void setName(String name){ this.name = name; }
     public String getPersNr()
     {
         return persNr;
     }
+    public void setPersNr(String persNr) {this.persNr = persNr;}
     public Boat getBoat(int boatId) {return boats.get(boatId);}
     public ArrayList<Boat> getBoats() {return boats;}
 }
