@@ -256,8 +256,8 @@ public class Console
                     System.out.println("Are you sure? (Y/N)");
                     if (scan.nextLine().equalsIgnoreCase("y"))
                     {
-                        mainMenu();
                         club.removeMember(member);
+                        mainMenu();
                     }else
                         accessMember(member, cameFromSearch);
                     break;
