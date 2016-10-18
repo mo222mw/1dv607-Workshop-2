@@ -69,7 +69,7 @@ public class Console
                     break;
             }
         }
-        saveAndQuit();
+        System.exit(0);
     }
 
     /*
@@ -100,7 +100,7 @@ public class Console
             if (input.equalsIgnoreCase("y"))
                 searchMember();
             else if(input.equalsIgnoreCase(QUIT_LETTER))
-                saveAndQuit();
+                System.exit(0);
             else
                 mainMenu();
         }
@@ -116,10 +116,11 @@ public class Console
         {
             //Compact search list:
             description.append("Id\tBoats\tName");
+            description.append("\n").append(getLine(DEFAULT_LINE_LENGTH)).append("\n");
             for (Member member : members)
             {
                 //Member information:
-                description.append("\n").append(member.getId()).
+                description.append(member.getId()).
                             append("\t").append(member.getBoats().size()).
                             append("\t\t").append(member.getName());
 
@@ -191,7 +192,7 @@ public class Console
         Member member = club.addMember(name, persNr);
         if(member == null)
         {
-            //TODO: Detect if member is already registered.
+            //TODO: Detect if member has already been registered.
             System.out.println("Bad input, try again? (Y/N)");
             if (scan.nextLine().equalsIgnoreCase("y"))
                 addMember();
@@ -220,7 +221,7 @@ public class Console
                     default:
                 }
             }
-            saveAndQuit();
+            System.exit(0);
         }
 
     }
@@ -235,7 +236,8 @@ public class Console
         System.out.print(createMenu(member.getName(), description,
                 "1. Boats..",
                 "2. Edit information",
-                "3. Go back"));
+                "3. Delete member",
+                "4. Go back"));
 
         while(!input.equalsIgnoreCase(QUIT_LETTER))
         {
@@ -247,10 +249,20 @@ public class Console
                     break;
 
                 case "2":
-
+                    editMember(member);
                     break;
 
                 case "3":
+                    System.out.println("Are you sure? (Y/N)");
+                    if (scan.nextLine().equalsIgnoreCase("y"))
+                    {
+                        mainMenu();
+                        club.removeMember(member);
+                    }else
+                        accessMember(member, cameFromSearch);
+                    break;
+
+                case "4":
                     if(cameFromSearch)
                         searchMember();
                     else
@@ -259,7 +271,51 @@ public class Console
                 default:
             }
         }
-        saveAndQuit();
+
+        System.exit(0);
+    }
+
+    private static void editMember(Member member)
+    {
+        String description = "Member name: " + member.getName();
+        System.out.print(createMenu("Edit member", description,
+                "1. Change name",
+                "2. Change personal number",
+                "3. Go back"));
+
+        input = scan.nextLine();
+        while(!input.equalsIgnoreCase(QUIT_LETTER))
+        {
+            Boolean success = true;
+            if (input.equals("1"))
+            {
+                //Get new name:
+                System.out.print("Name (Letters only): ");
+                String name = scan.nextLine();
+
+                //Attempt to change name:
+                success = club.editMemberName(member, name);
+            }else if(input.equals("2"))
+            {
+                //Get new personal number:
+                System.out.println("Personal number can be of type yymmddxxxx or yymmdd-xxxx");
+                System.out.print("Personal number: "); String persNr = scan.nextLine();
+
+                //Attempt to change personal number:
+                success = club.editMemberPersNr(member, persNr);
+            }
+
+            if(!success){
+                //Bad input, Try again?
+                System.out.println("Bad input, try again? (Y/N)");
+                if(!scan.nextLine().equalsIgnoreCase("y")) {
+                    accessMember(member, false);
+                    return;
+                }
+            }
+
+            editMember(member);
+        }
     }
 
     private static void addBoat(Member member)
@@ -302,7 +358,7 @@ public class Console
             System.out.print(createMenu("Register boat", newBoat.getType().toString() + " was successfully registered.",
                     "1. Register additional boat/s",
                     "2. Edit boat (" + newBoat.getType().toString() + ")",
-                    "3. Go back"));
+                    "4. Go back"));
             while(!input.equalsIgnoreCase(QUIT_LETTER))
             {
                 input = scan.nextLine();
@@ -314,13 +370,15 @@ public class Console
                     case "2":
                         editBoat(member, newBoat.getId());
                         break;
-                    case "3":
+
+                    case "4":
                         accessMember(member, false);
+                        break;
 
                     default:
                 }
             }
-            saveAndQuit();
+            System.exit(0);
         }
     }
 
@@ -348,49 +406,68 @@ public class Console
         System.out.print(createMenu(member.getName() + "'s boats", description.toString(),
                 "1. Add boat",
                 "2. Edit boat",
-                "3. Go back"));
+                "3. Remove boat",
+                "4. Go back"));
 
         input = scan.nextLine();
+
+
         while(!input.equalsIgnoreCase(QUIT_LETTER))
         {
-            switch (input)
+            try
             {
-                case "1":
-                    addBoat(member);
-                    break;
-                case "2":
-                    try
-                    {
+                int inputNumber;
+                switch (input)
+                {
+                    case "1":
+                        addBoat(member);
+                        break;
+
+                    case "2":
                         //Get boat to edit by id:
                         System.out.print("Boat nr: ");
-                        int inputNumber = scan.nextInt();
+                        inputNumber = scan.nextInt();
 
-                        if((inputNumber > 0) && (inputNumber < memberBoats.size()))
-                            editBoat(member, inputNumber-1);
+                        if ((inputNumber > 0) && (inputNumber <= memberBoats.size()))
+                            editBoat(member, inputNumber - 1);
                         else
+                        {
+                            input = "2";
                             throw new InputMismatchException();
+                        }
+                        break;
 
-                    } catch (InputMismatchException e)
-                    {
-                        scan.nextLine(); //Ignore previous input.
-
-                        //Try again?
-                        System.out.print("Bad input, try again? (Y/N): ");
-                        if (scan.nextLine().equalsIgnoreCase("y"))
-                        {input="2"; continue;}
-                        else
+                    case "3":
+                        //Get boat to remove by id:
+                        System.out.print("Boat nr: ");
+                        inputNumber = scan.nextInt();
+                        if ((inputNumber > 0) && (inputNumber <= memberBoats.size())) {
+                            club.removeBoat(member, inputNumber - 1);
                             boatMenu(member);
-                    }
-                    break;
+                        }else
+                        {
+                            input = "3";
+                            throw new InputMismatchException();
+                        }
+                        break;
 
-                case "3":
-                    accessMember(member, false);
-                    break;
+                    case "4":
+                        accessMember(member, false);
+                        break;
 
-                default:
-                    System.err.println("Invalid input");
-                    System.out.print("Choose action: ");
-                    input = scan.nextLine();
+                    default:
+                        System.err.println("Invalid input");
+                        System.out.print("Choose action: ");
+                        input = scan.nextLine();
+                }
+            }catch (InputMismatchException e)
+            {
+                scan.nextLine(); //Ignore previous input.
+
+                //Try again?
+                System.out.print("Bad input, try again? (Y/N): ");
+                if (!scan.nextLine().equalsIgnoreCase("y"))
+                    boatMenu(member);
             }
         }
 
@@ -443,15 +520,9 @@ public class Console
                     if (!scan.nextLine().equalsIgnoreCase("y"))
                         editBoat(member, boatId);
                     else if(input.equalsIgnoreCase(QUIT_LETTER))
-                        saveAndQuit();
+                        System.exit(0);
                 }
             }
         }
-    }
-
-    private static void saveAndQuit()
-    {
-        club.saveRegistry();
-        System.exit(0);
     }
 }
